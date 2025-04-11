@@ -15,7 +15,7 @@
 
 
         <aside class="w-1/4 p-4">
-          <x-left-menu :user="$user" /> 
+          <x-left-menu :user="$user"  /> 
 
         </aside>
     

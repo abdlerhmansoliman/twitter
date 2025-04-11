@@ -1,0 +1,19 @@
+.hidden-checkbox {
+    display: none;
+}
+
+/* إخفاء القائمة المنسدلة بشكل افتراضي */
+.dropdown-menu {
+    display: none;
+}
+
+/* عرض القائمة المنسدلة عند تحديد مربع الاختيار */
+#language-toggle:checked ~ .dropdown-menu {
+    display: block;
+}
+
+/* تدوير السهم عند فتح القائمة */
+#language-toggle:checked ~ label svg {
+    transform: rotate(180deg);
+    transition: transform 0.2s ease;
+}

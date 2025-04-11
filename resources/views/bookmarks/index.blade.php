@@ -1,34 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    @vite(['resources/css/app.css', 'resources/js/app.js']) 
-      <link href="./output.css" rel="stylesheet">
+@extends('layouts.app')
 
+@section('title', __('messages.bookmarks'))
 
-    <title>My Bookmarks</title>
-</head>
-<body style="background-color: #15202b;" >
-    <div class="">
-      <div class="relative text-gray-300 w-80 p-5 pb-0 mr-16">
-        <form method="GET" action="{{route('search')}}">
-        <button type="submit" class="absolute ml-4 mt-3 mr-4">
-            <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 56.966 56.966" style="enable-background:new 0 0 56.966 56.966;" xml:space="preserve" width="512px" height="512px">
-              <path d="M55.146,51.887L41.588,37.786c3.486-4.144,5.396-9.358,5.396-14.786c0-12.682-10.318-23-23-23s-23,10.318-23,23  s10.318,23,23,23c4.761,0,9.298-1.436,13.177-4.162l13.661,14.208c0.571,0.593,1.339,0.92,2.162,0.92  c0.779,0,1.518-0.297,2.079-0.837C56.255,54.982,56.293,53.08,55.146,51.887z M23.984,6c9.374,0,17,7.626,17,17s-7.626,17-17,17  s-17-7.626-17-17S14.61,6,23.984,6z"/>
-            </svg>
-          </button>
+@section('content')
+    <div class="ml-4 rounded border-1 justify-center"> 
+      <div class="flex items-center space-x-2">
+          <svg class="h-6 w-6 text-white" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+              </path>
+          </svg>
 
-        <input type="search" name="query" placeholder="Search Twitter" class="bg-blue-800 h-10 px-10 pr-5 w-full rounded-full text-sm focus:outline-none bg-purple-white shadow rounded border-0">
-    </form>
-    </div>
-        <title>post</title>
+          <h2 class="text-xl font-bold">@lang('messages.bookmarks')</h2>
       </div>
-        <div class="flex">
-            
-          <x-left-menu :user="$user" /> 
-        <div class="ml-4 rounded border-1 justify-center">        
+    </div>
             @foreach ($tweets as $post)
             <x-posts :post="$post" />
         @endforeach                
@@ -37,4 +21,4 @@
         </div>
 
       </div>
-</body>
+@endsection

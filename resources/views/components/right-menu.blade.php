@@ -20,7 +20,7 @@
     <div class="max-w-sm rounded-lg overflow-hidden shadow-lg m-4 mr-20">
         <div class="flex">
             <div class="flex-1 m-2">
-                <h2 class="px-4 py-2 text-xl w-48 font-semibold text-white"> trends</h2>
+                <h2 class="px-4 py-2 text-xl w-48 font-semibold text-white">@lang('messages.trending') </h2>
             </div>
             <div class="flex-1 px-4 py-2 m-2">
                 <a href="" class=" text-2xl rounded-full text-white hover:bg-gray-800 hover:text-blue-300 float-right">
@@ -52,7 +52,7 @@
 
         <div class="flex">
             <div class="flex-1 p-4">
-                <h2 class="px-4 ml-2 w-48 font-bold text-blue-400">Show more</h2>  
+                <h2 class="px-4 ml-2 w-48 font-bold text-blue-400">@lang('messages.more')</h2>  
             </div>
         </div>
     
@@ -64,7 +64,7 @@
     <div class="max-w-sm rounded-lg bg-gray-800 overflow-hidden shadow-lg m-4 mr-20">
         <div class="flex">
             <div class="flex-1 m-2">
-                <h2 class="px-4 py-2 text-xl w-48 font-semibold text-white">Who to follow</h2>
+                <h2 class="px-4 py-2 text-xl w-48 font-semibold text-white">@lang('messages.suggested')   </h2>
             </div>
         </div>
 

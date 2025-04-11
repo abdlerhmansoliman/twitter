@@ -6,13 +6,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+
 use SebastianBergmann\CodeUnit\FunctionUnit;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
-
     /**
      * The attributes that are mass assignable.
      *
@@ -24,7 +24,9 @@ class User extends Authenticatable
         'password',
         'profile_image',
         'url', 
-        'type'
+        'type',
+        'bio',
+        'link',
     ];
 
     /**
@@ -85,7 +87,7 @@ class User extends Authenticatable
         return $this->belongsToMany(Post::class, 'likes', 'user_id', 'post_id')->withTimestamps();
     }
     public function image(){
-        return $this->morphOne(Upload::class,'uploadable');
+        return $this->morphOne(Upload::class,'uploadable')->where('type','profile');
     }
     public function coverImage(){
         return $this->morphOne(Upload::class,'uploadable')->where('type','cover');
@@ -128,9 +130,9 @@ class User extends Authenticatable
         ->limit(3)
         ->get();  
      }
-     public function notifications()
+     public function customNotifications()
      {
-        return $this->hasMany(Notification::class,'user_id')->latest();
+         return $this->morphMany(Notification::class, 'notifiable');
      }
      
 }

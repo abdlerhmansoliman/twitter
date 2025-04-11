@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\ServiceProvider;
+use Kreait\Firebase\Factory;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +15,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        
+        
+        $this->app->singleton('firebase', function ($app) {
+            return (new Factory)->withServiceAccount(config('firebase.credentials'));
+        });
     }
 
     /**
@@ -19,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        
+
+
+
+        if (Session::has('locale')) {
+            App::setLocale(Session::get('locale'));
+        }   
     }
 }

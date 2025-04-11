@@ -15,7 +15,7 @@
         <title>post</title>
       </div>
       <div class="flex">
-        <x-left-menu :user="$user" /> 
+        <x-left-menu :user="$user"   /> 
     
         <div class="ml-4 w-full max-w-2xl">        
             <x-posts :post="$post" />
@@ -34,12 +34,12 @@
                        @endif
                        <div class="flex-1">
                         <button type="submit" class="bg-blue-400 mt-5 hover:bg-blue-600 text-white font-bold py-2 px-8 rounded-full mr-8 float-right">
-                            Replay
+                            @lang('messages.replay')
                           </button>
                     </div>
                 </form>
             
-                <h3 class="text-gray-300 text-sm font-semibold mb-3">Comments:</h3>
+                <h3 class="text-gray-300 text-sm font-semibold mb-3">@lang('messages.replies')</h3>
     
                 <div class="flex flex-col space-y-2">
                     @foreach ($post->replies as $reply)

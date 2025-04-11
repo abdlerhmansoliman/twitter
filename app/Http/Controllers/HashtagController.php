@@ -13,7 +13,13 @@ class HashtagController extends Controller
         $user=Auth::user();
         $hashtag = Hashtag::where('name', $hashtag)->firstOrFail();
         $posts = $hashtag->posts()->latest()->paginate(10);
-        return view('hashtag.show',compact('hashtag','posts','user')); 
+        $suggestedUsers=$user->suggestedUsers();
+
+        $hashtags=Hashtag::withCount('posts')
+        ->orderByDesc('posts_count')
+        ->limit(4)
+        ->get(); 
+        return view('hashtag.show',compact('hashtag','posts','user','hashtags','suggestedUsers'));   
 
     }
 }

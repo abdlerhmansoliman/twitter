@@ -34,12 +34,17 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'profile_image' => ['nullable','image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
-            'cover_image' => ['nullable','image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048']
+            'cover_image' => ['nullable','image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'bio' => ['required', 'string', 'max:255'],
+            'link' => ['required', 'string', 'max:255'],
+
 
         ]);
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'bio'=>$request->bio,
+            'link'=>$request->link,
             'password' => Hash::make($request->password),
         ]);
         if($request->hasFile('profile_image')){

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ReplayAddedEvent;
 use App\Http\Requests\StorePostRequest;
 use App\Models\Hashtag;
 use App\Models\Image;
 use App\Models\Post;
 use App\Models\User;
+use App\Notifications\ReplayAdded;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\File as RulesFile;
@@ -64,7 +66,13 @@ class PostController extends Controller
             $hashtagModel=Hashtag::firstOrCreate(['name'=>$hashtag]);
             $post->hashtags()->attach($hashtagModel->id);
         }
-// posts/AbtbhWf3nk5VAx7J2F64AcqsaExJwqBkc3lTK4hi.png
+        if($parentId){
+            $oraginalTweet=Post::find($parentId);
+            if($oraginalTweet && $oraginalTweet->user_id !== auth()->id()){
+                
+                event(new ReplayAddedEvent(auth()->user(),$oraginalTweet));
+            }
+        }
         return back();
     }
     public function retweet ($postId){
