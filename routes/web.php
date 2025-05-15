@@ -3,26 +3,21 @@
     
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\BookmarkController;
-use App\Http\Controllers\FcmController;
 use App\Http\Controllers\FollowersController;
 use App\Http\Controllers\HashtagController;
-use App\Http\Controllers\HashtageController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\SearchController;
-use App\Http\Controllers\FirebaseTokenController;
 use App\Http\Controllers\MessageController;
-use DragonCode\Contracts\Cashier\Http\Request;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Auth as FacadesAuth;
+
+
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 
 
-use function Laravel\Prompts\search;
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
@@ -57,7 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::get('chats', [MessageController::class,'index'])->name('chat.index');
     Route::get('/chat/{userId}',[MessageController::class,'show'])->name('chat.show');
     Route::post('/chat/send',[MessageController::class,'store'])->name('chat.send');
-
+    
 });
 
 require __DIR__.'/auth.php';
