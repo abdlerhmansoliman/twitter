@@ -20,7 +20,7 @@ class FollowersController extends Controller
     }
     public function unfollow (User $user){
         $follower=Auth::user();
-        $follower->following()->detach();
+        $follower->following()->detach($user->id);
         return back();
     }
 }

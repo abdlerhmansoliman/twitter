@@ -4,13 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Post extends Model
 {
     /** @use HasFactory<\Database\Factories\PostFactory> */
     use HasFactory;
-
     protected $fillable=['post','user_id','parent_id'];
+protected $appends = ['image_url'];
+
+
 
     public function user(){
         return $this->belongsTo(User::class);
@@ -36,7 +39,7 @@ class Post extends Model
         return $this->belongsTo(Post::class,'parent_id');
     }
     public function replies(){
-        return $this->hasMany(Post::class,'parent_id')->whereNotNull('parent_id');
+    return $this->hasMany(Post::class, 'parent_id')->with('user', 'image');
     }
     public function hashtags(){
         return $this->belongsToMany(Hashtag::class);
@@ -46,4 +49,14 @@ class Post extends Model
         
         return $matches[1];
     }
+    public function getImageUrlAttribute()
+    {
+        if ($this->image && !empty($this->image->url)) {
+            return asset('storage/' . $this->image->url);
+        }
+
+        return null;
+    }
+
+
 }

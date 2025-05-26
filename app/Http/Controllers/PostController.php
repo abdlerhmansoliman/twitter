@@ -7,49 +7,61 @@ use App\Http\Requests\StorePostRequest;
 use App\Models\Hashtag;
 use App\Models\Image;
 use App\Models\Post;
-use App\Models\User;
-use App\Notifications\ReplayAdded;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rules\File as RulesFile;
-use PhpParser\Node\Expr\FuncCall;
+use Inertia\Inertia;
 
 class PostController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
 
-        $user = Auth::user();
-        // MY TWEETS
-        $tweets = $user->rootPosts()->get();
-          // MY RETWEETS
-        $retweets=$user->retweets()->rootPosts()->get();
-        // FOLOWERS TWEETS AND RETWEETS
-        $followings = $user->followinPost()->rootPosts()->get();
+public function index()
+{
+    $user = Auth::user();
 
-        $suggestedUsers=$user->suggestedUsers();
+    $allposts = $user->all_posts->map(function($post){
+        $post->load([
+        'likes',
+        'user',        
+        'image',
+        'replies',     
+        'retweetedby',
+        'bookmark'
+        ]);
 
-        $hashtags=Hashtag::withCount('posts')
+        return $post->toArray();
+    });
+
+
+    $suggestedUsers = $user->suggestedUsers();
+
+    $hashtags = Hashtag::withCount('posts')
         ->orderByDesc('posts_count')
         ->limit(4)
-        ->get(); 
+        ->get();
+        
+    // ->sortByDesc('created_at')->values();
+    //  return view('tweet.index', compact('allposts', 'user','suggestedUsers','hashtags'));
+    return Inertia::render('Tweet/Index', [
+        'allposts' => $allposts,
+        'user' => $user,
+        'suggestedUsers' => $suggestedUsers,
+        'hashtags' => $hashtags,
+    ]);
+}
 
-        $allposts = $tweets->merge($retweets)->merge($followings)->sortByDesc('created_at');                         
-        return view('tweet.index', compact('allposts', 'user','suggestedUsers','hashtags'));
-    }
 
 
 
 
     public function store(StorePostRequest $request  )
-    {
+    {      
         $parentId=$request->input('parent_id');
         //postCeate
         $post = auth()->user()->posts()->create([
-            'post' => $request->post,
+            'post' => $request->body,
             'parent_id'=>$parentId
         ]);
         //imageUpload
@@ -61,11 +73,11 @@ class PostController extends Controller
             ]);
             }
             
-            $hashtags=Post::extractHashtags($request->post);
+            $hashtags = Post::extractHashtags($request->body);
             foreach($hashtags as $hashtag){
-            $hashtagModel=Hashtag::firstOrCreate(['name'=>$hashtag]);
-            $post->hashtags()->attach($hashtagModel->id);
-        }
+                $hashtagModel = Hashtag::firstOrCreate(['name' => $hashtag]);
+                $post->hashtags()->attach($hashtagModel->id);
+            }
         if($parentId){
             $oraginalTweet=Post::find($parentId);
             if($oraginalTweet && $oraginalTweet->user_id !== auth()->id()){
@@ -79,9 +91,12 @@ class PostController extends Controller
         //auth
         $user=Auth::user();
         //retweet
-        $user->retweets()->attach($postId);
-
-        return redirect('/tweet');
+        if($user->retweets()->where('post_id', $postId)->exists()){
+        $user->retweets()->detach($postId);
+        }else{
+            $user->retweets()->attach($postId);
+        }
+        return back();
     }
 
     public function show(Post $post)
@@ -89,8 +104,15 @@ class PostController extends Controller
         //auth
         $user = Auth::user();
 
-        $post->load('user', 'image', 'retweetedBy');
-        return view('tweet.show', compact('post','user'));
+    $post->load([
+        'likes',
+        'user',        
+        'image',
+        'replies',     
+        'retweetedby',
+        'bookmark'
+    ]);
+        return Inertia::render('Tweet/Show', ['post' => $post, 'user' => $user]);
     }
 
     public function trending(Request $request){
@@ -101,41 +123,27 @@ class PostController extends Controller
             ->orderByDesc('posts_count')
             ->limit(10)
             ->get();    
-            return view('tweet.trending', compact('user', 'hashtags', 'trending'));            
+            return Inertia::render('Tweet/Trending', compact('user', 'hashtags', 'trending'));            
         }
         else{
         $trending=Post::rootPosts()
-        ->withCount(['replies','likes','retweetedby'])
+        ->with([ 
+             'likes',
+                'user',
+                'image',
+                'replies',
+                'retweetedby',
+                'bookmark'])
+         ->withCount('replies', 'likes', 'retweetedby')       
         ->orderByRaw('(replies_count + likes_count + retweetedby_count) DESC')
         ->limit(10)
         ->get();
-        return view('tweet.trending',compact('trending','user'));
+        
+        return Inertia::render('Tweet/Trending',compact('trending','user'));
         }
+        
     }
 
 
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 }

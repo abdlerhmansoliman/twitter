@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class MessageController extends Controller
 {
@@ -31,9 +32,10 @@ class MessageController extends Controller
         ->unique()
         ->values();
         $chatUsers = User::whereIn('id', $chatIds)->get();
-        
-
-        return view('chat.index', compact('chatUsers','user'));
+        return Inertia::render('Chat/Index', [
+            'chatUsers'=>$chatUsers,
+            'user'=>$user
+        ]);
     }
 
 
@@ -45,16 +47,18 @@ class MessageController extends Controller
         ->where('receiver_id', Auth::id())
         ->whereNull('read_at')
         ->update(['read_at' => now()]);
-        $messages = Message::where(function ($query) use ($userId) {
+
+        $messages = Message::with('sender')
+        ->where(function ($query) use ($userId) {
             $query->where('sender_id',Auth::id())
             ->where('receiver_id',$userId);
              })->orWhere(function ($query) use($userId){
              $query->where('sender_id',$userId)
-             ->where('receiver_id',Auth::id());    
-             })->orderBy('created_at')->get();
+             ->where('receiver_id',Auth::id());})
+             ->orderBy('created_at')->get();
              
         
-            return view('chat.show',compact('messages','receiver','user'));
+            return Inertia::render('Chat/Show',compact('messages','receiver','user'));
         }
 
         public function store(MessageRequest $request){

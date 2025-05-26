@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\PostHelper;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class BookmarkController extends Controller
 {
@@ -17,11 +19,25 @@ class BookmarkController extends Controller
             $user->bookmarks()->attach($post->id);
         }
 
-        return back();
+        return redirect()->back();
     }
     public function index(){
         $user= Auth::user();
-        $tweets=$user->bookmarks()->latest()->get();
-        return view('bookmarks.index',compact('tweets','user'));
+       $tweets = $user->bookmarks()
+    ->with('user')
+    ->latest()
+    ->get()
+    ->map(function ($post) use ($user) {
+        return $post->load([
+        'likes',
+        'user',        
+        'image',
+        'replies',     
+        'retweetedby',
+        'bookmark'
+        ]);
+    });;
+        $tweets=PostHelper::injectIsLiked($tweets, $user);
+        return Inertia::render('Bookmarks/Index',compact('tweets','user'));
     }   
 }

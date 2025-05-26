@@ -18,24 +18,10 @@
                         #Hashtags
                     </a>
                 </div>
-
-
             @foreach ($posts as $post )
-    
-            <x-posts :post="$post" />
-            
-            
-            
+            <x-posts :post="$post" /> 
               @endforeach        
-
-
-              <!--third tweet-->
-
-
-
         </div>
-
-
         <x-right-menu :hashtags="$hashtags" :suggestedUsers="$suggestedUsers"  />
  
         </div>

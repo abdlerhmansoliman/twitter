@@ -21,6 +21,7 @@ class SendPostLikedNotification
      */
     public function handle(PostLikedEvent $event): void
     {   
-        $event->tweet->user->notify(new PostLiked($event->liker,$event->tweet));
-    }
+    if ($event->tweet->user_id !== $event->liker->id) {
+        $event->tweet->user->notify(new PostLiked($event->liker, $event->tweet));
+    }    }
 }

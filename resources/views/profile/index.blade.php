@@ -3,12 +3,10 @@
 @section('title', __('messages.profile'))
 
 @section('content')
-        <main role="main">
-            <div class="flex" style="width: 990px;">
-                <section class="w-3/5 border border-y-0 border-gray-800" style="max-width:600px;">
-                    <!--Content (Center)-->
-                        <!-- Nav back-->
-<div>
+ <main role="main">
+    <div class="flex" style="width: 990px;">
+     <section class="w-3/5 border border-y-0 border-gray-800" style="max-width:600px;">
+              <!-- Nav back-->
 <div class="flex justify-start">
     <div class="px-4 py-2 mx-2">
         <a href="" class=" text-2xl font-medium rounded-full text-blue-400 hover:bg-gray-800 hover:text-blue-300 float-right">

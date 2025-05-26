@@ -23,7 +23,7 @@ class StorePostRequest extends FormRequest
     {
         return [
             'post' => ['nullable'],
-            'images' => ['nullable', 'image', 'mimes:png,jpg,jpeg,gif', 'max:2048'],
+            'images' => ['nullable', 'mimes:png,jpg,jpeg,gif', 'max:2048'],
             'parent_id'=>['nullable','exists:posts,id']
         ];
     }

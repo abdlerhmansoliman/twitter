@@ -18,6 +18,7 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+
     protected $fillable = [
         'name',
         'email',
@@ -28,7 +29,8 @@ class User extends Authenticatable
         'bio',
         'link',
     ];
-
+    protected $appends = ['image_url','cover_url'];
+    
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -55,26 +57,28 @@ class User extends Authenticatable
     public function posts(){
         return $this->hasMany(Post::class);
     }
-
+ 
     public function rootPosts()
     {
         return $this->posts()->rootPosts();  
     }
 
-    public function follower(){
-        return $this->belongsToMany(User::class,'followers','following_id','follower_id');
+    public function follower() {
+        return $this->belongsToMany(User::class, 'followers', 'following_id', 'follower_id');
     }
-    public function following(){
-        return $this->belongsToMany(User::class,'followers','follower_id','following_id')->select('users.id');
+
+    public function following() {
+        return $this->belongsToMany(User::class, 'followers', 'follower_id', 'following_id')->select('users.id','name');
     }
     public function isFollowing(user $user){
         return $this->following()->where('following_id',$user->id)->exists();
     }
    
-    public function followersCount (){
+    public function getFollowersCountAttribute() {
         return $this->follower()->count();
     }
-    public function FollowinCount(){
+
+    public function getFollowingCountAttribute() {  
         return $this->following()->count();
     }
     public function likes()
@@ -135,4 +139,39 @@ class User extends Authenticatable
          return $this->morphMany(Notification::class, 'notifiable');
      }
      
+     public function getAllPostsAttribute()
+    {
+        // collection of tweets suposted to show
+        $user = auth()->user();
+        $followingsIds = $user->following()->pluck('users.id');
+         $tweets = $this->rootPosts()->with('user', 'image')->withCount('replies','retweetedby','likes','bookmark')->get();
+        $followings = $this->followinPost()->rootPosts()->with('user', 'image')->withCount('replies','retweetedby','likes','bookmark')->get();
+        $retweets =Post::whereHas('retweetedby', function($query) use ($followingsIds) {
+            $query->whereIn('user_id', $followingsIds);
+        })
+        ->rootPosts()
+        ->with('user', 'image')
+        ->withCount('replies', 'retweetedby', 'likes', 'bookmark')
+        ->get()
+        ->map(fn($post) => $post->setAttribute('is_retweet', true));;
+
+        return $tweets
+            ->merge($retweets)
+            ->merge($followings)
+            ->sortByDesc('created_at')
+        ->map(function ($post) use ($user) {
+            $post->is_liked = $post->likes()->where('user_id', $user->id)->exists();
+            return $post;   // << هنا لازم ترجع الـ $post بعد تعديل الخاصية
+        })
+            ->values();
+    }
+    public function getUserPostsAttribute()
+{
+    return Post::where('user_id', $this->id)
+        ->with(['user', 'image'])
+        ->withCount(['likes', 'retweetedby', 'replies'])
+        ->whereNull('parent_id')
+        ->orderBy('created_at', 'desc')
+        ->get();
+}
 }

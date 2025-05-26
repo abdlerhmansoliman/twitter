@@ -15,26 +15,28 @@ use App\Http\Controllers\MessageController;
 
 
 use Illuminate\Support\Facades\Route;
-
-
-
+use Inertia\Inertia;
 
 Route::middleware('auth')->group(function () {
+
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
 
     Route::get('/profile/{id}', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('profile/update', [ProfileController::class, 'update'])->name('profile.update');
-    Route::post('/prolfile/{user}/follow',[FollowersController::class,'follow'])->name('user.follow');
-    Route::post('/prolfile/{user}/unfollow',[FollowersController::class,'unfollow'])->name('user.unfollow');
+    Route::post('/profile/{user}/follow', [FollowersController::class, 'follow'])->name('user.follow');
+    Route::post('/profile/{user}/unfollow', [FollowersController::class, 'unfollow'])->name('user.unfollow');
 
-    Route::get('/tweet',[PostController::class,'index'])->name('tweet.index');
+    Route::get('/profile/{id}/followers', [ProfileController::class, 'followers'])->name('profile.followers');
+    Route::get('/profile/{id}/following', [ProfileController::class, 'following'])->name('profile.following');
+
+
+
+    Route::get('/',[PostController::class,'index'])->name('tweet.index');
     Route::post('tweet/',[PostController::class,'store'])->name('tweet.store');
-    Route::get('/tweet/suggestions',[PostController::class,'suggestedUsers']);
     Route::post('/tweet/{post}/like', [LikeController::class, 'like'])->name('posts.like');
     Route::post('/retweet/{tweet}',[PostController::class,'retweet'])->name('post.retweet');
     Route::get('/tweet/{post}', [PostController::class, 'show'])->name('tweet.show');
-
 
     Route::get('/bookmarks',[BookmarkController::class,'index'])->name('bookmarks.index');
     Route::post('/bookmarks/{post}',[BookmarkController::class,'mark'])->name('bookmark.mark');
@@ -42,7 +44,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/search',[SearchController::class,'search'])->name('search');
 
     Route::get('/trending',[PostController::class,'trending'])->name('tweet.trending');
-    Route::get('/hashtag/{hashtag}',[HashtagController::class,'show'])->name('hashtag.show');   
+    Route::get('/hashtag/{hashtag}',[HashtagController::class,'show'])->name('hashtag.show');  
 
     Route::get('lang/{locale}',[LocaleController::class,'setLocale']);
 

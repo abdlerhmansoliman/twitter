@@ -15,11 +15,12 @@ class LocaleMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+
+        public function handle(Request $request, Closure $next)
     {
-        $locale=Session::get('locale') ?? 'en';
-        Session::put('locale',$locale);
-        App::setLocale($locale);
+        if ($locale = $request->cookie('locale')) {
+            app()->setLocale($locale);
+        }
         return $next($request);
     }
 }
