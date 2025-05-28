@@ -23,7 +23,8 @@ public function index()
     $user = Auth::user();
 
     // جلب البوستات مع العلاقات مع Pagination
-    $allposts = Post::whereIn('user_id', $user->following()->pluck('users.id')->push($user->id)) // بوستات المستخدم والمتابعين
+    $allposts = Post::whereIn('user_id', $user->following()->pluck('users.id')->push($user->id)) 
+        ->whereNull('parent_id')
         ->with(['likes', 'user', 'image', 'replies', 'retweetedby', 'bookmark'])
         ->withCount(['replies', 'retweetedby', 'likes', 'bookmark'])
         ->orderByDesc('created_at')
@@ -122,8 +123,7 @@ public function index()
                 'bookmark'])
          ->withCount('replies', 'likes', 'retweetedby')       
         ->orderByRaw('(replies_count + likes_count + retweetedby_count) DESC')
-        ->limit(10)
-        ->get();
+        ->paginate(5);
         
         return Inertia::render('Tweet/Trending',compact('trending','user'));
         }

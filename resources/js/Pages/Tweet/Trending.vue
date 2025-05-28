@@ -1,26 +1,4 @@
-<script setup>
-import { Link } from '@inertiajs/inertia-vue3';
-import Posts from '../../Components/Posts.vue';
-import MainLayout from '@/Layout/main.vue';
-defineProps({
-    user: Object,
-    hashtags: {
-      type: Array,
-      default: () => []
-    },
-    trending: {
-      type: Array,
-      default: () => []
-    },
-    filter: {
-      type: String,
-      default: ''
-    }
-});
 
-
-
-</script>
 
 
 <template>
@@ -60,14 +38,80 @@ defineProps({
 
         <div v-else>
           <Posts
-            v-for="post in trending"
+            v-for="post in posts"
             :key="post.id"
             :post="post"
           />
         </div>
+             <div ref="loadMoreTrigger" class="py-6 text-center text-gray-400" v-if="page < lastPage">
+            تحميل المزيد...
+            </div>
       </div>
     </div>
   </div>
   </MainLayout>
   
 </template>
+<script setup>
+import { useIntersectionObserver } from '@vueuse/core';
+import { Link } from '@inertiajs/inertia-vue3';
+import Posts from '../../Components/Posts.vue';
+import MainLayout from '@/Layout/main.vue';
+import { ref } from 'vue';
+import { Inertia } from '@inertiajs/inertia';
+const props= defineProps({
+    user: Object,
+    hashtags: {
+      type: Array,
+      default: () => []
+    },
+    trending: {
+      type: Object,
+      default: () => []
+    },
+    filter: {
+      type: String,
+      default: ''
+    }
+});
+const posts = ref([...props.trending.data]);
+const page = ref(props.trending.current_page);
+const lastPage = ref(props.trending.last_page);
+const loading = ref(false);
+const loadMoreTrigger = ref(null);
+
+function loadMore() {
+  if (loading.value || page.value >= lastPage.value) return;
+
+  loading.value = true;
+  const nextPage = page.value + 1;
+console.log('Loading page:', page.value + 1);
+  Inertia.get(route('tweet.trending'), { page: nextPage }, {
+    preserveScroll: true,
+    preserveState: true,
+    onSuccess: (pageProps) => {
+      posts.value.push(...pageProps.props.trending.data);
+      page.value = pageProps.props.trending.current_page;
+      lastPage.value = pageProps.props.trending.last_page;
+
+    },
+    onFinish: () => {
+      loading.value = false;
+    }
+  });
+}
+
+useIntersectionObserver(
+  loadMoreTrigger,
+  ([{ isIntersecting }]) => {
+    if (isIntersecting) {
+      loadMore();
+    }
+  },
+  {
+    threshold:  0.1,
+  }
+);
+
+
+</script>

@@ -116,7 +116,6 @@ import MainLayout from '@/Layout/main.vue';
 import RightList from '../../Components/Right-list.vue';
 import { ref } from 'vue';
 import { Inertia } from '@inertiajs/inertia';
-
 const props = defineProps({
   allposts: Object,
   user: Object,
@@ -126,7 +125,6 @@ const props = defineProps({
   initialPage: Object
 });
 
-// الآن يمكننا استخدام props بأمان:
 const posts = ref([...props.allposts.data]);
 const page = ref(props.allposts.current_page);
 const lastPage = ref(props.allposts.last_page);
@@ -139,23 +137,25 @@ function loadMore() {
 
   loading.value = true;
   const nextPage = page.value + 1;
-console.log('Loading page:', page.value + 1);
-  Inertia.get(route('tweet.index'), { page: nextPage }, {
+
+  Inertia.get(route('tweet.index') + '?page=' + nextPage, {}, {
     preserveScroll: true,
     preserveState: true,
+    only: ['allposts'],
     onSuccess: (pageProps) => {
-        console.log('Loaded data:', pageProps.props.allposts.data);
       posts.value.push(...pageProps.props.allposts.data);
       page.value = pageProps.props.allposts.current_page;
       lastPage.value = pageProps.props.allposts.last_page;
-            console.log('Updated page to:', page.value);
-
+      
+      // هنا نرجع الرابط لحالته الأصلية بدون رقم الصفحة
+      window.history.replaceState({}, '', route('tweet.index'));
     },
     onFinish: () => {
       loading.value = false;
     }
   });
 }
+
 
 useIntersectionObserver(
   loadMoreTrigger,

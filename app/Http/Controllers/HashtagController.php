@@ -24,8 +24,7 @@ class HashtagController extends Controller
             'replies',
             'retweetedby',
             'bookmark'
-        )->latest()->paginate(1
-    );
+        )->latest()->paginate(5);
             $posts = PostHelper::injectIsLiked($posts, $user);
         return Inertia::render('Hashtags/Index',compact('posts','user','hashtag'));   
 

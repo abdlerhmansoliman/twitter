@@ -24,8 +24,10 @@ class ProfileController extends Controller
       $posts = $user->posts()->with([
               'likes', 'user', 'image', 'replies', 'retweetedby', 'bookmark'
           ])
-          ->where('parent_id',null)
-         ->latest()->get();
+            ->where('parent_id',null)
+            ->latest()
+            ->paginate(5);
+;
             $posts = PostHelper::injectIsLiked($posts, $user);
             $likedCount = $user->likedPosts()->count();
 
@@ -50,17 +52,17 @@ public function show($id)
         $posts = $user->likedPosts()
             ->with(['image','user', 'replies', 'likes', 'retweetedby', 'bookmark'])
             ->latest()
-            ->get();
-            $posts = PostHelper::injectIsLiked($posts, $user);
+            ->paginate(5);
          } 
     else {
         $posts = $user->posts()
             ->with(['likes', 'user', 'image', 'replies', 'retweetedby', 'bookmark'])
             ->latest()
-            ->get();
-            $posts = PostHelper::injectIsLiked($posts, $user);
+            ->paginate(5);
 
     }
+
+         $posts = PostHelper::injectIsLiked($posts, $user);
 
     return Inertia::render('Profile/Index', compact('user', 'isOwner', 'posts', 'filter', 'isFollowing'));
 }

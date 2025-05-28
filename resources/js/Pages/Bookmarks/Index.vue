@@ -19,6 +19,8 @@ defineProps({
           <h2 class="text-xl text-center font-bold">{{$t('bookmarks')}}</h2>
       </div>
     </div>
+      <div class="flex justify-center">
+
             <div class="flex flex-col">
             <Posts v-for="tweet in tweets"              
                 :key="tweet.id"
@@ -27,6 +29,7 @@ defineProps({
                 />
             
         
+      </div>
       </div>
     </MainLayout>
       </template>

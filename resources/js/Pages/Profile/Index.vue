@@ -160,7 +160,8 @@
         <ul v-for="post in posts" class="list-none">
             <Posts :post="post" :user="user" :key="post.id" />
         </ul>
-
+            <div ref="loadMoreTrigger" class="py-6 text-center text-gray-400" v-if="page < lastPage">
+            </div>
         <hr class="border-gray-800">
       </section>
 
@@ -184,6 +185,7 @@
 
 <script setup>
 
+import { useIntersectionObserver } from '@vueuse/core';
 import { defineProps, ref  } from 'vue'
 import { Inertia } from '@inertiajs/inertia'
 import { Link } from '@inertiajs/inertia-vue3'
@@ -191,21 +193,57 @@ import dayjs from 'dayjs'
 import moment from '../../moment'
 import { useI18n } from 'vue-i18n'
 
-const { locale } = useI18n();
-
 import MainLayout from '@/Layout/main.vue'
-
 import Posts from '../../Components/Posts.vue';
 const props = defineProps({
     user: Object,
     isOwner: Boolean,
-    posts: Array,
+    posts: Object,
     filter: String,
     isFollowing: Boolean,
     likedCount: Number
    })
+
+const posts = ref([...props.posts.data]);
+const page = ref(props.posts.current_page);
+const lastPage = ref(props.posts.last_page);
+const loading = ref(false);
+const loadMoreTrigger = ref(null);
+function loadMore() {
+  if (loading.value || page.value >= lastPage.value) return;
+
+  loading.value = true;
+  const nextPage = page.value + 1;
+  Inertia.get(route('profile.index'), { page: nextPage }, {
+    preserveScroll: true,
+    preserveState: true,
+    onSuccess: (pageProps) => {
+      posts.value.push(...pageProps.props.posts.data);
+      page.value = pageProps.props.posts.current_page;
+      lastPage.value = pageProps.props.posts.last_page;
+
+    },
+    onFinish: () => {
+      loading.value = false;
+    }
+  });
+}
+
+useIntersectionObserver(
+  loadMoreTrigger,
+  ([{ isIntersecting }]) => {
+    if (isIntersecting) {
+      loadMore();
+    }
+  },
+  {
+    threshold:  0.1,
+  }
+);
+
+const { locale } = useI18n();
+
 const following = ref(props.isFollowing)
-const loading = ref(false)
 
 function toggleFollow() {
   loading.value = true
@@ -221,7 +259,6 @@ function toggleFollow() {
       loading.value = false
     }
   })
-console.log(i18n.global.locale.value)
 }
 
 </script>
