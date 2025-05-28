@@ -39,27 +39,30 @@ class MessageController extends Controller
     }
 
 
-    public function show($userId){
+ public function show($userId, Request $request)
+{
+    $receiver = User::findOrFail($userId);
+    $user = Auth::user();
 
-        $receiver=User::findOrFail($userId);
-        $user=Auth::user();
-        Message::where('sender_id', $userId)
+    Message::where('sender_id', $userId)
         ->where('receiver_id', Auth::id())
         ->whereNull('read_at')
         ->update(['read_at' => now()]);
 
-        $messages = Message::with('sender')
+    $messages = Message::with('sender')
         ->where(function ($query) use ($userId) {
-            $query->where('sender_id',Auth::id())
-            ->where('receiver_id',$userId);
-             })->orWhere(function ($query) use($userId){
-             $query->where('sender_id',$userId)
-             ->where('receiver_id',Auth::id());})
-             ->orderBy('created_at')->get();
-             
-        
-            return Inertia::render('Chat/Show',compact('messages','receiver','user'));
-        }
+            $query->where('sender_id', Auth::id())
+                  ->where('receiver_id', $userId);
+        })->orWhere(function ($query) use ($userId) {
+            $query->where('sender_id', $userId)
+                  ->where('receiver_id', Auth::id());
+        })
+        ->orderBy('created_at', 'asc') 
+        ->paginate(10);
+
+    return Inertia::render('Chat/Show', compact('messages', 'receiver', 'user'));
+}
+
 
         public function store(MessageRequest $request){
 

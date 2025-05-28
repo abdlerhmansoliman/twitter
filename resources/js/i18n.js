@@ -11,9 +11,10 @@ const messages = {
 const savedLocale = Cookies.get('locale') || 'en';
 
 const i18n = createI18n({
+  legacy: false,
   locale: savedLocale,
   fallbackLocale: 'en',
   messages,
 });
 
-export default i18n;  // لازم يكون export default
+export default i18n;  

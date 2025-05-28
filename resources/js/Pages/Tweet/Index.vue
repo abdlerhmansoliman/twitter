@@ -86,11 +86,14 @@
 
             <!-- عرض التغريدات -->
             <div class="w-full ">
-                <Posts v-for="tweet in allposts"
-                :key="tweet.id"
-                :user="tweet.user"
-                :post="tweet"
-                 />
+                <Posts v-for="tweet in posts"
+                    :key="tweet.id"
+                    :user="tweet.user"
+                    :post="tweet"
+                />
+            </div>
+            <div ref="loadMoreTrigger" class="py-6 text-center text-gray-400" v-if="page < lastPage">
+            تحميل المزيد...
             </div>
         </div>
 
@@ -106,23 +109,65 @@
 
 
 <script setup>
-
+import { useIntersectionObserver } from '@vueuse/core';
 import { useForm } from '@inertiajs/inertia-vue3';
-import { defineProps } from 'vue';
 import Posts from '@/Components/Posts.vue';
 import MainLayout from '@/Layout/main.vue';
 import RightList from '../../Components/Right-list.vue';
-
-
+import { ref } from 'vue';
+import { Inertia } from '@inertiajs/inertia';
 
 const props = defineProps({
-  allposts: Array,
+  allposts: Object,
   user: Object,
   suggestedUsers: Array,
   hashtags: Array,
   tweet: Object,
   initialPage: Object
 });
+
+// الآن يمكننا استخدام props بأمان:
+const posts = ref([...props.allposts.data]);
+const page = ref(props.allposts.current_page);
+const lastPage = ref(props.allposts.last_page);
+const loading = ref(false);
+
+const loadMoreTrigger = ref(null);
+
+function loadMore() {
+  if (loading.value || page.value >= lastPage.value) return;
+
+  loading.value = true;
+  const nextPage = page.value + 1;
+console.log('Loading page:', page.value + 1);
+  Inertia.get(route('tweet.index'), { page: nextPage }, {
+    preserveScroll: true,
+    preserveState: true,
+    onSuccess: (pageProps) => {
+        console.log('Loaded data:', pageProps.props.allposts.data);
+      posts.value.push(...pageProps.props.allposts.data);
+      page.value = pageProps.props.allposts.current_page;
+      lastPage.value = pageProps.props.allposts.last_page;
+            console.log('Updated page to:', page.value);
+
+    },
+    onFinish: () => {
+      loading.value = false;
+    }
+  });
+}
+
+useIntersectionObserver(
+  loadMoreTrigger,
+  ([{ isIntersecting }]) => {
+    if (isIntersecting) {
+      loadMore();
+    }
+  },
+  {
+    threshold:  0.1,
+  }
+);
 
 const form = useForm({
   body: '',
@@ -132,6 +177,7 @@ const form = useForm({
 const handleFileUpload = (event) => {
   form.images = event.target.files[0]; 
 };
+
 const submit = () => {
   form.post(route('tweet.store'), {
     forceFormData: true,
@@ -143,8 +189,6 @@ const submit = () => {
     },
   });
 };
-
-
-
 </script>
+
 

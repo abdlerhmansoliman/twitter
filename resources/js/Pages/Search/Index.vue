@@ -1,8 +1,11 @@
 <script setup>
-import { moment } from '@/i18n'import MainLayout from '@/Layout/main.vue';
+import MainLayout from '@/Layout/main.vue';
 import { Link } from '@inertiajs/inertia-vue3';
 import Posts from '../../Components/Posts.vue';
+import moment from '../../moment'
+import { useI18n } from 'vue-i18n'
 
+const { locale } = useI18n();
 const props = defineProps({
     users: Array,
     posts: Array,
@@ -22,15 +25,19 @@ const props = defineProps({
     <div v-if="users?.length">
       <h3 class="text-xl font-semibold text-white mb-4">Users</h3>
       <div class="space-y-4">
-        <div v-for="user in users" :key="user.id" class="flex items-center space-x-4 p-4 bg-blue-900 rounded-lg shadow">
-          <img class="h-10 w-10 rounded-full" :src="user.image_url" alt="User Image" />
-          <div>
-            <p class="text-white font-medium">{{ user.name }}</p>
-            <p class="text-gray-400 text-sm">
-              @{{ user.name }} — {{ dayjs(user.created_at).format('D MMMM') }}
-            </p>
-          </div>
-        </div>
+       <div v-for="user in users" :key="user.id" class="flex items-center space-x-4 p-4 bg-blue-900 rounded-lg shadow">
+  <img class="h-10 w-10 rounded-full" :src="user.image_url" alt="User Image" />
+    <Link
+      :href="route('profile.show', user.id)"
+      class="text-white font-medium hover:underline"
+    >
+      {{ user.name }}
+    <p class="text-gray-400 text-sm">
+      @{{ user.name }} — {{ moment(user.created_at).format('D MMMM') }}
+    </p>
+    </Link>
+
+</div>
       </div>
     </div>
 

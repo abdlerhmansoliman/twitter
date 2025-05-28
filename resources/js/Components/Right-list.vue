@@ -14,7 +14,7 @@ const form = useForm({
 })
 const followForm = useForm({})
 const follow = (userId) => {
-followForm.post(`/prolfile/${userId}/follow`)
+followForm.post(`/profile/${userId}/follow`)
 }
 const submit = () => {
     form.get('/search', {

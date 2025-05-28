@@ -10,7 +10,7 @@
                 <p class="text-base leading-6 font-medium text-white">
                      {{post.user.name }}
                     <span class="block text-sm leading-5 font-medium text-gray-400 group-hover:text-gray-300 transition duration-150">
-                        @ {{ post.user.name }} ·      {{ formattedDate }}
+              {{ moment(post.created_at).format('D MMMM YYYY h:mm A')}}
                     </span>
                 </p>
             </div>
@@ -104,12 +104,14 @@
 
 <script setup>
 import { defineProps, computed} from 'vue'
-import moment from 'moment'
-import 'moment/locale/ar'
+import axios from 'axios';
+import { ref } from 'vue';
+
 import { Link,useForm  } from '@inertiajs/inertia-vue3';
-const formattedDate = computed(() => {
-  return moment(props.post.created_at).format('D MMMM')
-})
+import moment from '../moment'
+import { useI18n } from 'vue-i18n'
+
+const { locale } = useI18n();
 const props = defineProps({
   post: Object,
   user: Object,
@@ -126,7 +128,10 @@ const linkedPost = computed(() => {
 })
 const form=useForm({})
 const submitLike = () => {
-  form.post(route('posts.like', props.post.id), { preserveScroll: true })
+  form.post(route('posts.like', props.post.id), {
+     preserveScroll: true,
+    
+    })
 }
 
 const submitRetweet = () => {
@@ -140,4 +145,5 @@ const submitBookmark = () => {
 const is_liked = computed(() => {
   return props.post.is_liked === true;
 });
+
 </script>

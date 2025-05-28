@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\PostHelper;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -17,7 +18,10 @@ class SearchController extends Controller
             return redirect()->back()->with('error', 'يرجى إدخال كلمة للبحث');
         }
         $users = User::where('name', 'LIKE', "%{$query}%")->get();
-        $posts = Post::where('post', 'LIKE', "%{$query}%")->with('user')->withCount('replies','retweetedby','likes','bookmark')->get();
+        $posts = Post::where('post', 'LIKE', "%{$query}%")
+        ->with('user','replies','retweetedby','likes','bookmark')
+        ->get();
+         $posts = PostHelper::injectIsLiked($posts, $user);
         return Inertia::render('Search/Index', compact('users', 'posts', 'query','user'));
 }
 }

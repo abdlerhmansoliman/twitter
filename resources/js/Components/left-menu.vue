@@ -3,10 +3,13 @@
     <div style="width: 275px;">
       <div class="overflow-y-auto fixed h-screen pr-3" style="width: 275px;">
         <!-- Logo -->
-        <svg viewBox="0 0 24 24" class="h-8 w-8 text-white ml-3" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 22.4.36a9.14 9.14 0 0 1-2.88 1.1A4.52 4.52 0 0 0 16.11 0c-2.5 0-4.51 2.05-4.51 4.57 0 .36.04.71.12 1.04A12.94 12.94 0 0 1 3.14.84a4.64 4.64 0 0 0-.61 2.3c0 1.59.8 3 2.02 3.83a4.49 4.49 0 0 1-2.05-.57v.06c0 2.23 1.55 4.09 3.6 4.51a4.55 4.55 0 0 1-2.04.08 4.52 4.52 0 0 0 4.22 3.16A9.05 9.05 0 0 1 1 19.54a12.94 12.94 0 0 0 7.29 2.17c8.76 0 13.55-7.41 13.55-13.84 0-.21 0-.42-.02-.63A9.86 9.86 0 0 0 23 3z" />
-        </svg>
+  <Link :href="route('tweet.index')" class="inline-block">
+    <svg viewBox="0 0 24 24" class="h-8 w-8 text-white ml-3" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 22.4.36a9.14 9.14 0 0 1-2.88 1.1A4.52 4.52 0 0 0 16.11 0c-2.5 0-4.51 2.05-4.51 4.57 0 .36.04.71.12 1.04A12.94 12.94 0 0 1 3.14.84a4.64 4.64 0 0 0-.61 2.3c0 1.59.8 3 2.02 3.83a4.49 4.49 0 0 1-2.05-.57v.06c0 2.23 1.55 4.09 3.6 4.51a4.55 4.55 0 0 1-2.04.08 4.52 4.52 0 0 0 4.22 3.16A9.05 9.05 0 0 1 1 19.54a12.94 12.94 0 0 0 7.29 2.17c8.76 0 13.55-7.41 13.55-13.84 0-.21 0-.42-.02-.63A9.86 9.86 0 0 0 23 3z"
+      />
+    </svg>
+  </Link>
 
         <!-- Navigation -->
         <nav class="mt-5 px-2">
@@ -72,13 +75,14 @@
               </svg>
               {{ $t('profile') }}
               </Link>
-
-              <form @submit.prevent="$inertia.post(route('logout'))">
-                <button type="submit"
-                  class="bg-blue-400 hover:bg-blue-500 w-full mt-5 text-white font-bold py-2 px-4 rounded-full">
-                  {{ $t('logout') }}
-                </button>
-              </form>
+        <Link
+          href="{{ route('logout') }}"
+          method="post"
+          as="button"
+          class="bg-blue-400 hover:bg-blue-500 w-full mt-5 text-white font-bold py-2 px-4 rounded-full"
+        >
+          {{ $t('logout') }}
+        </Link>
 
             </div>
           </nav>

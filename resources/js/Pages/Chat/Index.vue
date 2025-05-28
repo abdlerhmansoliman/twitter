@@ -1,6 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/inertia-vue3';
-
+import MainLayout from '@/Layout/main.vue';
 defineProps({
   chatUsers: Array,
   user: Object
@@ -9,7 +9,7 @@ defineProps({
 </script>
 
 <template>
-    
+    <MainLayout>
   <main class="flex-1 min-h-screen border-r border-l border-gray-700 mx-auto max-w-4xl p-4">
     <h2 class="text-xl font-bold mb-4">{{ $t('chats') }}</h2>
 
@@ -37,4 +37,5 @@ defineProps({
       {{ $t('there is no chats') }}
     </p>
   </main>
+  </MainLayout>
 </template>

@@ -19,7 +19,6 @@ class PostFactory extends Factory
     {
         return [
             'post'=>fake()->sentence(),
-            'image'=>fake()->imageUrl(640, 480, 'posts', true),
             'user_id'=>User::factory()
         ];
     }

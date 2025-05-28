@@ -18,12 +18,17 @@ public static function injectIsLiked($posts, $user)
         return $posts;
     }
 
-    // If it's a plain collection
-    return $posts->map(function ($post) use ($user) {
-        $post->is_liked = $post->likes->contains('user_id', $user->id);
-        return $post;
-    });
+    if ($posts instanceof \Illuminate\Support\Collection) {
+        return $posts->map(function ($post) use ($user) {
+            $post->is_liked = $post->likes->contains('user_id', $user->id);
+            return $post;
+        });
+    }
+
+    $posts->is_liked = $posts->likes->contains('user_id', $user->id);
+    return $posts;
 }
+
 
 
 }

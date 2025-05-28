@@ -27,7 +27,10 @@ class LikeController extends Controller
             event(new PostLikedEvent(auth()->user(),$post));
 
         }
-        return back();
+           return response()->json([
+        'liked' => $liked,
+        'likes_count' => $post->likes()->count(),
+    ]);
     }
 
 }

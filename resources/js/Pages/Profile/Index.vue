@@ -102,7 +102,7 @@
                       <circle cx="12" cy="17.486" r="1.285"></circle>
                     </g>
                   </svg>
-                  <span class="leading-5 mt-3 ml-1">{{dayjs(user.created_at).format('DD/MM/YYYY')}}</span>
+                  <span class="leading-5 mt-3 ml-1">{{moment(user.created_at).format('DD/MM/YYYY')}}</span>
                 </span>
               </div>
               <div v-if="isOwner" class="pt-3 flex justify-start items-start w-full divide-x divide-gray-800 divide-solid">
@@ -188,7 +188,11 @@ import { defineProps, ref  } from 'vue'
 import { Inertia } from '@inertiajs/inertia'
 import { Link } from '@inertiajs/inertia-vue3'
 import dayjs from 'dayjs'
-import moment from 'moment'
+import moment from '../../moment'
+import { useI18n } from 'vue-i18n'
+
+const { locale } = useI18n();
+
 import MainLayout from '@/Layout/main.vue'
 
 import Posts from '../../Components/Posts.vue';
@@ -217,8 +221,8 @@ function toggleFollow() {
       loading.value = false
     }
   })
+console.log(i18n.global.locale.value)
 }
-
 
 </script>
 <style>

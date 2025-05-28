@@ -11,7 +11,7 @@ class NotificationController extends Controller
 public function index(){
     $user = Auth::user();
 
-    $notifications = $user->notifications()->latest()->take(10)->get(); // كل الإشعارات
+    $notifications = $user->notifications()->latest()->paginate(4); // كل الإشعارات
     $unreadCount = $user->unreadNotifications->count();
     return Inertia::render('Notify/Index', [
         'notifications' => $notifications,

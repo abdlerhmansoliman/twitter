@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\ReplayAddedEvent;
+use App\Helpers\PostHelper;
 use App\Http\Requests\StorePostRequest;
 use App\Models\Hashtag;
 use App\Models\Image;
@@ -21,19 +22,12 @@ public function index()
 {
     $user = Auth::user();
 
-    $allposts = $user->all_posts->map(function($post){
-        $post->load([
-        'likes',
-        'user',        
-        'image',
-        'replies',     
-        'retweetedby',
-        'bookmark'
-        ]);
-
-        return $post->toArray();
-    });
-
+    // جلب البوستات مع العلاقات مع Pagination
+    $allposts = Post::whereIn('user_id', $user->following()->pluck('users.id')->push($user->id)) // بوستات المستخدم والمتابعين
+        ->with(['likes', 'user', 'image', 'replies', 'retweetedby', 'bookmark'])
+        ->withCount(['replies', 'retweetedby', 'likes', 'bookmark'])
+        ->orderByDesc('created_at')
+        ->paginate(5); // هنا Pagination
 
     $suggestedUsers = $user->suggestedUsers();
 
@@ -41,9 +35,7 @@ public function index()
         ->orderByDesc('posts_count')
         ->limit(4)
         ->get();
-        
-    // ->sortByDesc('created_at')->values();
-    //  return view('tweet.index', compact('allposts', 'user','suggestedUsers','hashtags'));
+    $allposts = PostHelper::injectIsLiked($allposts, $user);
     return Inertia::render('Tweet/Index', [
         'allposts' => $allposts,
         'user' => $user,
@@ -103,15 +95,9 @@ public function index()
     {
         //auth
         $user = Auth::user();
+              $post->load('user', 'likes', 'replies', 'retweetedby', 'bookmark');
 
-    $post->load([
-        'likes',
-        'user',        
-        'image',
-        'replies',     
-        'retweetedby',
-        'bookmark'
-    ]);
+        $post=PostHelper::injectIsLiked($post, $user);
         return Inertia::render('Tweet/Show', ['post' => $post, 'user' => $user]);
     }
 

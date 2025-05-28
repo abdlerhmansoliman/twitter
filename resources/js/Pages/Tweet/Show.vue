@@ -1,38 +1,4 @@
-<script setup>
-import { Link , useForm } from '@inertiajs/inertia-vue3';
-import Posts from '../../Components/Posts.vue';
-import { moment } from '@/i18n'
-import { ref } from 'vue'
 
-const fileInput = ref(null)
-const props=defineProps({
-    post:Object,
-    user:Object,
-
-})
-
-const form = useForm({
-    body: '',
-    images: null,
-    parent_id: props.post.id ,
-
-})
-
-const handleFileUpload = (event) => {
-  form.images = event.target.files[0]; 
-};
-const submit = () => {
-  form.post(route('tweet.store'), {
-    forceFormData: true,
-    onSuccess: () => {
-      form.reset();
-    },
-    onError: (errors) => {
-      console.log(errors);
-    },
-  });
-};
-</script>
 
 <template>
   <div>
@@ -80,10 +46,48 @@ const submit = () => {
               class="w-40 h-40 object-cover rounded-lg mb-2"
             />
             <small class="text-gray-500 text-[10px] block">
-              {{ dayjs(reply.created_at).format('D MMMM YYYY h:mm A')}}
+              {{ moment(reply.created_at).format('D MMMM YYYY h:mm A')}}
             </small>
           </div>
         </div>
       </div>
     </div>
 </template>
+
+<script setup>
+import { Link , useForm } from '@inertiajs/inertia-vue3';
+import Posts from '../../Components/Posts.vue';
+import { ref } from 'vue'
+import moment from '../../moment'
+import { useI18n } from 'vue-i18n'
+
+const { locale } = useI18n();
+const fileInput = ref(null)
+const props=defineProps({
+    post:Object,
+    user:Object,
+
+})
+
+const form = useForm({
+    body: '',
+    images: null,
+    parent_id: props.post.id ,
+
+})
+
+const handleFileUpload = (event) => {
+  form.images = event.target.files[0]; 
+};
+const submit = () => {
+  form.post(route('tweet.store'), {
+    forceFormData: true,
+    onSuccess: () => {
+      form.reset();
+    },
+    onError: (errors) => {
+      console.log(errors);
+    },
+  });
+};
+</script>

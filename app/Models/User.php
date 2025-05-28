@@ -139,32 +139,36 @@ class User extends Authenticatable
          return $this->morphMany(Notification::class, 'notifiable');
      }
      
-     public function getAllPostsAttribute()
-    {
-        // collection of tweets suposted to show
-        $user = auth()->user();
-        $followingsIds = $user->following()->pluck('users.id');
-         $tweets = $this->rootPosts()->with('user', 'image')->withCount('replies','retweetedby','likes','bookmark')->get();
-        $followings = $this->followinPost()->rootPosts()->with('user', 'image')->withCount('replies','retweetedby','likes','bookmark')->get();
-        $retweets =Post::whereHas('retweetedby', function($query) use ($followingsIds) {
+
+public function getAllPostsPaginated($page = 1, $perPage = 10)
+{
+    $user = auth()->user();
+    $followingsIds = $user->following()->pluck('users.id');
+
+    $tweets = $this->rootPosts()->with('user', 'image')->withCount('replies','retweetedby','likes','bookmark')->get();
+    $followings = $this->followinPost()->rootPosts()->with('user', 'image')->withCount('replies','retweetedby','likes','bookmark')->get();
+    $retweets = Post::whereHas('retweetedby', function($query) use ($followingsIds) {
             $query->whereIn('user_id', $followingsIds);
         })
         ->rootPosts()
         ->with('user', 'image')
         ->withCount('replies', 'retweetedby', 'likes', 'bookmark')
         ->get()
-        ->map(fn($post) => $post->setAttribute('is_retweet', true));;
+        ->map(fn($post) => $post->setAttribute('is_retweet', true));
 
-        return $tweets
-            ->merge($retweets)
-            ->merge($followings)
-            ->sortByDesc('created_at')
-        ->map(function ($post) use ($user) {
-            $post->is_liked = $post->likes()->where('user_id', $user->id)->exists();
-            return $post;   // << هنا لازم ترجع الـ $post بعد تعديل الخاصية
-        })
-            ->values();
-    }
+    $allPosts = $tweets->merge($retweets)->merge($followings)->sortByDesc('created_at')->values();
+
+    $items = $allPosts->slice(($page - 1) * $perPage, $perPage)->values();
+
+    return new LengthAwarePaginator(
+        $items,
+        $allPosts->count(),
+        $perPage,
+        $page,
+        ['path' => LengthAwarePaginator::resolveCurrentPath()]
+    );
+}
+
     public function getUserPostsAttribute()
 {
     return Post::where('user_id', $this->id)
