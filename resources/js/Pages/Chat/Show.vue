@@ -1,4 +1,3 @@
-
 <template>
   <MainLayout>
     <div class="max-w-2xl text-white mx-auto p-5 rounded-lg shadow">
@@ -9,17 +8,26 @@
 
       <!-- قائمة الرسائل -->
       <div
-        class="flex-1 overflow-y-auto p-4 rounded-lg space-y-4 shadow-inner bg-[#253341]"
-        style="scrollbar-width: thin; scrollbar-color: #3b82f6 #1e293b"
+        ref="messagesContainer"
+        class="p-4 rounded-lg space-y-4 shadow-inner bg-[#253341] overflow-y-auto"
+        style="max-height: 500px; scrollbar-width: thin; scrollbar-color: #3b82f6 #1e293b;"
+        @scroll="handleScroll"
       >
+        <!-- Loading indicator for older messages -->
+        <div v-if="loading" class="text-center py-2">
+          <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+          <p class="text-sm text-gray-400 mt-2">Loading older messages...</p>
+        </div>
+
+        <!-- Observer element for infinite scroll -->
+        <div ref="topObserver" class="h-1"></div>
+
         <div
-          v-for="(msg, index) in allMessages"
+          v-for="(msg, index) in displayMessages"
           :key="msg.id"
           class="w-full flex"
           :class="msg.sender.id === user.id ? 'justify-end' : 'justify-start'"
-          :ref="index === allMessages.length - 1 ? 'last' : null"  
         >
-          <!-- باقي عرض الرسالة كما عندك -->
           <div class="flex items-end gap-2 max-w-md">
             <template v-if="msg.sender.id === user.id">
               <div
@@ -62,7 +70,7 @@
         </div>
       </div>
 
-      <!-- الفورم والإرسال كما عندك -->
+      <!-- الفورم والإرسال -->
       <form @submit.prevent="submit" class="mt-4 flex gap-2 items-center" autocomplete="off">
         <input
           v-model="form.message"
@@ -76,10 +84,11 @@
 
         <button
           type="submit"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg flex items-center justify-center transition-colors duration-200 select-none"
+          :disabled="form.processing"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg flex items-center justify-center transition-colors duration-200 select-none disabled:opacity-50"
           aria-label="Send message"
         >
-          <span>{{ $t('send') }}</span>
+          <span>{{ form.processing ? 'Sending...' : $t('send') }}</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5 ml-2"
@@ -99,7 +108,7 @@
 <script setup>
 import { useForm } from '@inertiajs/inertia-vue3';
 import { useIntersectionObserver } from '@vueuse/core'
-import { ref, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, computed } from 'vue'
 import { Inertia } from '@inertiajs/inertia'
 
 import MainLayout from '@/Layout/main.vue';
@@ -113,45 +122,150 @@ const props = defineProps({
   user: Object,
   receiver: Object
 })
-const allMessages = ref([...props.messages.data])
-const page = ref(props.messages.current_page)
-const last = ref(null)    
+
+// Reactive data
+const allMessages = ref([])
 const loading = ref(false)
+const messagesContainer = ref(null)
+const topObserver = ref(null)
+const isFirstLoad = ref(true)
 
-function loadMore() {
-  if (loading.value) return
-  if (page.value >= props.messages.last_page) return 
-   loading.value = true
-  page.value++
+// Computed property لضمان ترتيب صحيح للرسائل
+const displayMessages = computed(() => {
+  return [...allMessages.value].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+})
 
-Inertia.get(route('chat.show', props.receiver.id), { page: page.value }, {
-  preserveState: true,
-  preserveScroll: true,
-  onSuccess: (pageProps) => {
-    allMessages.value.push(...pageProps.props.messages.data)
-    loading.value = false
-  },
-  onError: () => {
-    loading.value = false
-    page.value--
-  }
-})
-}
-useIntersectionObserver(last, ([{ isIntersecting }]) => {
-  if (isIntersecting) {
-    loadMore()
-  }
-})
+// Form setup
 const form = useForm({
   message: '',
   receiver_id: props.receiver.id,  
 });
-const submit = () => {
-  form.post(route('chat.send'), {
-    onSuccess: () => {
-      form.reset()
+
+// Initialize messages
+function initializeMessages() {
+  if (props.messages && props.messages.data) {
+    allMessages.value = [...props.messages.data]
+  }
+}
+
+// Load more messages function
+function loadMore() {
+  if (loading.value) return
+  if (!hasMoreMessages()) return
+  
+  loading.value = true
+  const nextPage = props.messages.current_page + 1
+
+  Inertia.visit(route('chat.show', props.receiver.id), {
+    method: 'get',
+    data: { page: nextPage },
+    preserveState: true,
+    preserveScroll: true,
+    preserveUrl: false,
+    only: ['messages'],
+    replace: true,
+    onSuccess: (page) => {
+      const container = messagesContainer.value
+      const oldScrollHeight = container.scrollHeight
+      
+      if (page.props.messages.data.length > 0) {
+        allMessages.value.unshift(...page.props.messages.data)
+      }
+      
+      window.history.replaceState({}, '', route('chat.show', props.receiver.id))
+      
+      nextTick(() => {
+        const newScrollHeight = container.scrollHeight
+        container.scrollTop = newScrollHeight - oldScrollHeight
+        loading.value = false
+      })
+    },
+    onError: () => {
+      loading.value = false
     }
   })
 }
-</script>
+// Check if there are more messages to load
+function hasMoreMessages() {
+  return props.messages.current_page < props.messages.last_page
+}
 
+// Intersection observer for infinite scroll
+useIntersectionObserver(topObserver, ([{ isIntersecting }]) => {
+  if (isIntersecting && !isFirstLoad.value && hasMoreMessages()) {
+    loadMore()
+  }
+})
+
+// Handle manual scroll for infinite scroll
+function handleScroll() {
+  const container = messagesContainer.value
+  if (container.scrollTop <= 50 && !loading.value && hasMoreMessages()) {
+    loadMore()
+  }
+}
+
+// Submit new message
+const submit = () => {
+  form.post(route('chat.send'), {
+    preserveState: true,
+    replace: true,
+    onSuccess: () => {
+      form.reset()
+      
+      // Reload to get the new message
+      Inertia.visit(route('chat.show', props.receiver.id), {
+        method: 'get',
+        preserveState: true,
+        only: ['messages'],
+        replace: true,
+        onSuccess: (page) => {
+          // Check for new messages
+          const newMessages = page.props.messages.data
+          const lastCurrentMessage = allMessages.value[allMessages.value.length - 1]
+          
+          // Add only truly new messages
+          const messagesToAdd = newMessages.filter(newMsg => 
+            !allMessages.value.some(existingMsg => existingMsg.id === newMsg.id)
+          )
+          
+          if (messagesToAdd.length > 0) {
+            allMessages.value.push(...messagesToAdd)
+            nextTick(() => scrollToBottom())
+          }
+        }
+      })
+    }
+  })
+}
+
+// Scroll to bottom function
+function scrollToBottom() {
+  const container = messagesContainer.value
+  if (container) {
+    container.scrollTop = container.scrollHeight
+  }
+}
+
+// Watch for props changes
+watch(() => props.messages, (newMessages) => {
+  if (newMessages && newMessages.data) {
+    // Only update if it's the first page (new messages)
+    if (newMessages.current_page === 1) {
+      allMessages.value = [...newMessages.data]
+      nextTick(() => scrollToBottom())
+    }
+  }
+}, { deep: true })
+
+// Mounted lifecycle
+onMounted(() => {
+  initializeMessages()
+  
+  // Scroll to bottom on first load
+  nextTick(() => {
+    scrollToBottom()
+    isFirstLoad.value = false
+  })
+})
+</script>

@@ -184,9 +184,8 @@
 </template>
 
 <script setup>
-
 import { useIntersectionObserver } from '@vueuse/core';
-import { defineProps, ref  } from 'vue'
+import { defineProps, ref, computed } from 'vue'
 import { Inertia } from '@inertiajs/inertia'
 import { Link } from '@inertiajs/inertia-vue3'
 import dayjs from 'dayjs'
@@ -195,6 +194,7 @@ import { useI18n } from 'vue-i18n'
 
 import MainLayout from '@/Layout/main.vue'
 import Posts from '../../Components/Posts.vue';
+
 const props = defineProps({
     user: Object,
     isOwner: Boolean,
@@ -202,65 +202,95 @@ const props = defineProps({
     filter: String,
     isFollowing: Boolean,
     likedCount: Number
-   })
+})
 
 const posts = ref([...props.posts.data]);
 const page = ref(props.posts.current_page);
 const lastPage = ref(props.posts.last_page);
 const loading = ref(false);
 const loadMoreTrigger = ref(null);
-function loadMore() {
-  if (loading.value || page.value >= lastPage.value) return;
 
-  loading.value = true;
-  const nextPage = page.value + 1;
-  Inertia.get(route('profile.index'), { page: nextPage }, {
-    preserveScroll: true,
-    preserveState: true,
-    onSuccess: (pageProps) => {
-      posts.value.push(...pageProps.props.posts.data);
-      page.value = pageProps.props.posts.current_page;
-      lastPage.value = pageProps.props.posts.last_page;
+const currentRoute = computed(() => {
 
-    },
-    onFinish: () => {
-      loading.value = false;
+    return props.user && !props.isOwner ? 'profile.show' : 'profile.index';
+});
+
+
+const routeParams = computed(() => {
+    if (currentRoute.value === 'profile.show') {
+        return { id: props.user.id };
     }
-  });
+    return {};
+});
+
+function loadMore() {
+    if (loading.value || page.value >= lastPage.value) return;
+
+    loading.value = true;
+    const nextPage = page.value + 1;
+    const currentUrl = window.location.pathname;
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('page', nextPage);
+    
+
+    const requestData = { 
+        page: nextPage 
+    };
+    
+    if (props.filter) {
+        requestData.filter = props.filter;
+    }
+
+    Inertia.visit(route(currentRoute.value, routeParams.value), {
+        method: 'get',
+        data: requestData,
+        preserveScroll: true,
+        preserveState: true,
+        replace: true,
+        onSuccess: (pageProps) => {
+            posts.value.push(...pageProps.props.posts.data);
+            page.value = pageProps.props.posts.current_page;
+            lastPage.value = pageProps.props.posts.last_page;
+
+            urlParams.delete('page');
+            const cleanUrl = currentUrl + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            window.history.replaceState({}, '', cleanUrl);
+        },
+        onFinish: () => {
+            loading.value = false;
+        }
+    });
 }
 
 useIntersectionObserver(
-  loadMoreTrigger,
-  ([{ isIntersecting }]) => {
-    if (isIntersecting) {
-      loadMore();
+    loadMoreTrigger,
+    ([{ isIntersecting }]) => {
+        if (isIntersecting) {
+            loadMore();
+        }
+    },
+    {
+        threshold: 0.1,
     }
-  },
-  {
-    threshold:  0.1,
-  }
 );
 
 const { locale } = useI18n();
-
 const following = ref(props.isFollowing)
 
 function toggleFollow() {
-  loading.value = true
+    loading.value = true
+    const routeName = following.value ? 'user.unfollow' : 'user.follow'
 
-  const routeName = following.value ? 'user.unfollow' : 'user.follow'
-
-  Inertia.post(route(routeName, { user: props.user.id }), {}, {
-    onSuccess: () => {
-      following.value = !following.value
-      loading.value = false
-    },
-    onError: () => {
-      loading.value = false
-    }
-  })
+    Inertia.post(route(routeName, { user: props.user.id }), {}, {
+        onSuccess: () => {
+            following.value = !following.value
+            loading.value = false
+        },
+        onError: () => {
+            loading.value = false
+        }
+    })
 }
-
 </script>
 <style>
 .overflow-y-auto::-webkit-scrollbar, .overflow-y-scroll::-webkit-scrollbar, .overflow-x-auto::-webkit-scrollbar, .overflow-x::-webkit-scrollbar, .overflow-x-scroll::-webkit-scrollbar, .overflow-y::-webkit-scrollbar, body::-webkit-scrollbar {

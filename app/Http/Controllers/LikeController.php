@@ -27,7 +27,7 @@ class LikeController extends Controller
             event(new PostLikedEvent(auth()->user(),$post));
 
         }
-           return back();
+           return redirect()->back();
     }
 
 }

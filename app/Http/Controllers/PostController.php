@@ -34,7 +34,7 @@ public function index()
 
     $hashtags = Hashtag::withCount('posts')
         ->orderByDesc('posts_count')
-        ->limit(4)
+        ->limit(3)
         ->get();
     $allposts = PostHelper::injectIsLiked($allposts, $user);
     return Inertia::render('Tweet/Index', [

@@ -93,7 +93,6 @@
                 />
             </div>
             <div ref="loadMoreTrigger" class="py-6 text-center text-gray-400" v-if="page < lastPage">
-            تحميل المزيد...
             </div>
         </div>
 
@@ -147,7 +146,6 @@ function loadMore() {
       page.value = pageProps.props.allposts.current_page;
       lastPage.value = pageProps.props.allposts.last_page;
       
-      // هنا نرجع الرابط لحالته الأصلية بدون رقم الصفحة
       window.history.replaceState({}, '', route('tweet.index'));
     },
     onFinish: () => {

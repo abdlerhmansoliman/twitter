@@ -1,29 +1,5 @@
 
-<script setup>
-import { defineProps } from 'vue'
-import { useForm } from '@inertiajs/inertia-vue3'
-import { Link } from '@inertiajs/inertia-vue3';
 
-const props = defineProps({
-    suggestedUsers: Array,
-    hashtags: Array
-})
-
-const form = useForm({
-    query: '',
-})
-const followForm = useForm({})
-const follow = (userId) => {
-followForm.post(`/profile/${userId}/follow`)
-}
-const submit = () => {
-    form.get('/search', {
-        preserveScroll: true,
-        preserveState: true,
-    })
-}
-
-</script>
 
 <template>
 
@@ -48,32 +24,38 @@ const submit = () => {
 <div class="w-full mt-4">
     <div class="flex items-center justify-between">
         <h2 class="px-4 py-2 text-xl w-48 font-semibold text-white">trindeing</h2>
-        <a href="#" class="text-2xl rounded-full text-white hover:bg-gray-800 hover:text-blue-300 p-2">
+        <Link :href="route('tweet.trending')" class="text-2xl rounded-full text-white hover:bg-gray-800 hover:text-blue-300 p-2">
             <svg class="h-6 w-6" fill="none" stroke-linecap="round" stroke-linejoin="round"
                 stroke-width="2" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0..."></path>
                 <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
-        </a>
+        </Link>
     </div>
 
     <!-- Hashtags -->
-    <div v-for="hashtag in hashtags" class="px-4 py-1">
+   <div>
+    <!-- Hashtags -->
+    <div v-if="showHashtags">
+      <div v-for="hashtag in hashtags" :key="hashtag.id" class="px-4 py-1">
         <a :href="'/hashtag/' + hashtag.name" class="text-blue-500 hover:underline">
-            #{{ hashtag.name }}
+          #{{ hashtag.name }}
         </a>
+      </div>
     </div>
 
     <!-- More Button -->
-    <div class="flex items-center justify-between px-4 py-2">
-        <h2 class="text-base font-bold text-blue-400">{{$t('more')}}</h2>  
-        <a href="#" class="text-2xl rounded-full text-gray-400 hover:bg-blue-800 hover:text-blue-300">
-            <svg class="h-5 w-5" fill="none" stroke-linecap="round" stroke-linejoin="round"
-                stroke-width="2" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M19 9l-7 7-7-7"></path>
-            </svg>
-        </a>
+    <div class="flex items-center justify-between px-4 py-2 cursor-pointer" @click="toggleHashtags">
+      <h2 class="text-base font-bold text-blue-400">{{$t('more')}}</h2>  
+      <svg
+        :class="{'transform rotate-180': showHashtags}"
+        class="h-5 w-5 text-gray-400 hover:bg-blue-800 hover:text-blue-300 transition-transform duration-300"
+        fill="none" stroke-linecap="round" stroke-linejoin="round"
+        stroke-width="2" stroke="currentColor" viewBox="0 0 24 24"
+      >
+        <path d="M19 9l-7 7-7-7"></path>
+      </svg>
     </div>
+  </div>
 </div>
 
 <!-- Suggested Users Section -->
@@ -117,3 +99,33 @@ const submit = () => {
     </div>
     </div>
 </template>
+
+<script setup>
+import { defineProps,ref } from 'vue'
+import { useForm } from '@inertiajs/inertia-vue3'
+import { Link } from '@inertiajs/inertia-vue3';
+
+const props = defineProps({
+    suggestedUsers: Array,
+    hashtags: Array
+})
+
+const form = useForm({
+    query: '',
+})
+const followForm = useForm({})
+const follow = (userId) => {
+followForm.post(`/profile/${userId}/follow`)
+}
+const submit = () => {
+    form.get('/search', {
+        preserveScroll: true,
+        preserveState: true,
+    })
+}
+const showHashtags = ref(true);
+
+function toggleHashtags() {
+  showHashtags.value = !showHashtags.value;
+}
+</script>
